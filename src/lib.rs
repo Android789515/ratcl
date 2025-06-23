@@ -71,6 +71,43 @@ pub fn rows(top_cell: impl LayoutCell, bottom_cell: impl LayoutCell, offset: f64
     }
 }
 
+/// Creates a pair of columns with a given offset for the first column.
+///
+/// # Example
+/// ```
+/// use ratatui::{buffer::Buffer, layout::Rect, widgets::{Block, Paragraph, Widget}};
+/// use ratcl::{columns, make_cell};
+/// 
+/// struct SomeStruct;
+///
+/// impl Widget for SomeStruct {
+///     fn render(self, area: Rect, buffer: &mut Buffer) {
+///         let some_block = Block::default();
+///         let some_paragraph = Paragraph::new("Test")
+///             .block(some_block);
+/// 
+///         columns(
+///             make_cell(some_paragraph.clone()),
+///             make_cell(some_paragraph),
+///             0.5,
+///         )(area, buffer);
+///     }
+/// }
+/// ```
+pub fn columns(left_cell: impl LayoutCell, right_cell: impl LayoutCell, offset: f64) -> impl LayoutCell {
+    move |rect, buffer| {
+        let offset_percent = (offset * 100.0) as u16;
+
+        let rects = Layout::horizontal([
+            Constraint::Percentage(offset_percent),
+            Constraint::Percentage(100 - offset_percent),
+        ]).split(rect);
+
+        left_cell(rects[0], buffer);
+        right_cell(rects[1], buffer);
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use ratatui::widgets::Paragraph;
@@ -118,5 +155,25 @@ mod tests {
         ]);
 
         assert_eq!(buffer, expected_buffer);
+    }
+
+    #[test]
+    fn creates_columns() {
+        let word = "Hello";
+
+        let ( mut buffer, widget ) = setup_test(word, 10, 1);
+
+        columns(
+            make_cell(widget.clone()),
+            make_cell(widget),
+            0.5,
+        )(buffer.area, &mut buffer);
+
+        let expected_buffer = Buffer::with_lines(vec![
+            "HelloHello",
+        ]);
+
+        assert_eq!(buffer, expected_buffer);
+        
     }
 }
