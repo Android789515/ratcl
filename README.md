@@ -2,7 +2,7 @@
 
 Create complex [ratatui](https://ratatui.rs/) layouts with a simple API.
 
-![example](./example-pictures/complex-layout-example.png)
+![showcase](./example-pictures/showcase.png)
 
 ## Create Rows
 
