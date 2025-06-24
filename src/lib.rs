@@ -114,7 +114,7 @@ mod tests {
 
     use super::*;
 
-    fn setup_test(word: &str, buffer_len: u16, buffer_height: u16) -> ( Buffer, Paragraph ) {
+    fn setup_test_buffer(word: &str, buffer_len: u16, buffer_height: u16) -> ( Buffer, Paragraph ) {
         let buffer = Buffer::empty(Rect::new(0, 0, buffer_len, buffer_height));
 
         let paragraph = Paragraph::new(word);
@@ -126,7 +126,7 @@ mod tests {
     fn renders_cell() {
         let word = "Hello";
 
-        let ( mut buffer, widget ) = setup_test(word, word.len() as u16, 1);
+        let ( mut buffer, widget ) = setup_test_buffer(word, word.len() as u16, 1);
 
         make_cell(widget)(buffer.area, &mut buffer);
 
@@ -141,7 +141,7 @@ mod tests {
     fn creates_rows() {
         let word = "Hello";
 
-        let ( mut buffer, widget ) = setup_test(word, 5, 2);
+        let ( mut buffer, widget ) = setup_test_buffer(word, 5, 2);
 
         rows(
             make_cell(widget.clone()),
@@ -161,7 +161,7 @@ mod tests {
     fn creates_columns() {
         let word = "Hello";
 
-        let ( mut buffer, widget ) = setup_test(word, 10, 1);
+        let ( mut buffer, widget ) = setup_test_buffer(word, 10, 1);
 
         columns(
             make_cell(widget.clone()),
