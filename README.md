@@ -1,6 +1,6 @@
 # ratcl
 
-Create complex layouts with a simple API.
+Create complex [ratatui](https://ratatui.rs/) layouts with a simple API.
 
 ## Create Rows
 
