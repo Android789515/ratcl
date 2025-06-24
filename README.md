@@ -25,6 +25,9 @@ impl Widget for SomeStruct {
 }
 ```
 
+### Output
+![rows](./example-pictures/rows-example.png)
+
 ## Create Columns
 
 ```rs
@@ -48,6 +51,9 @@ impl Widget for SomeStruct {
 }
 ```
 
+### Output
+![columns](./example-pictures/columns-example.png)
+
 ## Create Complex Layouts
 
 ```rs
@@ -64,18 +70,66 @@ impl Widget for SomeStruct {
 
         rows(
             make_cell(paragraph.clone()),
-            rows(
-              make_cell(paragraph.clone()),
+            columns(
+              rows(
+                  make_cell(InnerStruct::inside(paragraph.clone())),
+                  columns(
+                      make_cell(paragraph.clone()),
+                      make_cell(paragraph.clone()),
+                      0.5,
+                  ),
+                  0.5,
+              ),
               columns(
-                  make_cell(paragraph.clone()),
-                  make_cell(paragraph.clone()),
+                  rows(
+                      make_cell(paragraph.clone()),
+                      make_cell(paragraph.clone()),
+                      0.5,
+                  ),
+                  rows(
+                      make_cell(paragraph.clone()),
+                      make_cell(paragraph.clone()),
+                      0.4,
+                  ),
                   0.5,
               ),
               0.5,
             ),
             0.3,
         )(area, buffer);
+
+    }
+}
+
+#[derive(Clone)]
+struct InnerStruct<Content: Widget + Clone> {
+    inside: Content,
+}
+
+impl <Content: Widget + Clone> InnerStruct<Content> {
+    pub fn inside(content: Content) -> impl Widget + Clone {
+        Self {
+            inside: content,
+        }
+    }
+}
+
+impl <Content: Widget + Clone> Widget for InnerStruct<Content> {
+    fn render(self, area: Rect, buffer: &mut Buffer) {
+        let inner_block = Block::bordered();
+        let inner_paragraph = Paragraph::new("Inner")
+            .block(inner_block);
+
+        make_cell(self.inside)(area, buffer);
+
+        columns(
+            make_cell(inner_paragraph.clone()),
+            make_cell(inner_paragraph),
+            0.7,
+        )(area.inner(Margin::new(4, 2)), buffer);
     }
 }
 ```
 
+### Output
+![complex-layout](./example-pictures/complex-layout-example.png)
