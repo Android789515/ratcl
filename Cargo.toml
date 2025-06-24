@@ -2,6 +2,10 @@
 name = "ratcl"
 version = "0.1.0"
 edition = "2024"
+description = "Create complex ratatui layouts with a simple API."
+license = "Unlicense"
+homepage = "https://github.com/Android789515/ratcl"
+repository = "https://github.com/Android789515/ratcl"
 
 [dependencies]
 ratatui = "0.29.0"
