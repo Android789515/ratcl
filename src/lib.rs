@@ -34,7 +34,7 @@ pub fn make_cell(content: impl Widget + Clone) -> impl LayoutCell {
     }
 }
 
-/// Creates a pair of rows with a given offset for the first row.
+/// Creates a pair of rows with a given scale factor for the first row.
 ///
 /// # Example
 /// ```
@@ -61,13 +61,13 @@ pub fn make_cell(content: impl Widget + Clone) -> impl LayoutCell {
 ///     }
 /// }
 /// ```
-pub fn rows(top_cell: impl LayoutCell, bottom_cell: impl LayoutCell, offset: f64) -> impl LayoutCell {
+pub fn rows(top_cell: impl LayoutCell, bottom_cell: impl LayoutCell, scale_factor: f64) -> impl LayoutCell {
     move |rect, buffer| {
-        let offset_percent = (offset * 100.0) as u16;
+        let scale_percent = (scale_factor * 100.0) as u16;
 
         let rects = Layout::vertical([
-            Constraint::Percentage(offset_percent),
-            Constraint::Percentage(100 - offset_percent),
+            Constraint::Percentage(scale_percent),
+            Constraint::Percentage(100 - scale_percent),
         ]).split(rect);
 
         top_cell(rects[0], buffer);
@@ -75,7 +75,7 @@ pub fn rows(top_cell: impl LayoutCell, bottom_cell: impl LayoutCell, offset: f64
     }
 }
 
-/// Creates a pair of columns with a given offset for the first column.
+/// Creates a pair of columns with a given scale factor for the first column.
 ///
 /// # Example
 /// ```
@@ -106,13 +106,13 @@ pub fn rows(top_cell: impl LayoutCell, bottom_cell: impl LayoutCell, offset: f64
 ///     }
 /// }
 /// ```
-pub fn columns(left_cell: impl LayoutCell, right_cell: impl LayoutCell, offset: f64) -> impl LayoutCell {
+pub fn columns(left_cell: impl LayoutCell, right_cell: impl LayoutCell, scale_factor: f64) -> impl LayoutCell {
     move |rect, buffer| {
-        let offset_percent = (offset * 100.0) as u16;
+        let scale_percent = (scale_factor * 100.0) as u16;
 
         let rects = Layout::horizontal([
-            Constraint::Percentage(offset_percent),
-            Constraint::Percentage(100 - offset_percent),
+            Constraint::Percentage(scale_percent),
+            Constraint::Percentage(100 - scale_percent),
         ]).split(rect);
 
         left_cell(rects[0], buffer);
