@@ -39,7 +39,7 @@ pub fn make_cell(content: impl Widget + Clone) -> impl LayoutCell {
 /// # Example
 /// ```
 /// use ratatui::{buffer::Buffer, layout::Rect, widgets::{Block, Paragraph, Widget}};
-/// use ratcl::{rows, make_cell};
+/// use ratcl::{rows, columns, make_cell};
 /// 
 /// struct SomeStruct;
 ///
@@ -51,7 +51,11 @@ pub fn make_cell(content: impl Widget + Clone) -> impl LayoutCell {
 /// 
 ///         rows(
 ///             make_cell(some_paragraph.clone()),
-///             make_cell(some_paragraph),
+///             columns(
+///                 make_cell(some_paragraph.clone()),
+///                 make_cell(some_paragraph),
+///                 0.5,
+///             ),
 ///             0.5,
 ///         )(area, buffer);
 ///     }
@@ -76,7 +80,7 @@ pub fn rows(top_cell: impl LayoutCell, bottom_cell: impl LayoutCell, offset: f64
 /// # Example
 /// ```
 /// use ratatui::{buffer::Buffer, layout::Rect, widgets::{Block, Paragraph, Widget}};
-/// use ratcl::{columns, make_cell};
+/// use ratcl::{columns, rows, make_cell};
 /// 
 /// struct SomeStruct;
 ///
@@ -88,7 +92,15 @@ pub fn rows(top_cell: impl LayoutCell, bottom_cell: impl LayoutCell, offset: f64
 /// 
 ///         columns(
 ///             make_cell(some_paragraph.clone()),
-///             make_cell(some_paragraph),
+///             rows(
+///                 make_cell(some_paragraph.clone()),
+///                 columns(
+///                     make_cell(some_paragraph.clone()),
+///                     make_cell(some_paragraph),
+///                     0.5,
+///                 ),
+///                 0.3,
+///             ),
 ///             0.5,
 ///         )(area, buffer);
 ///     }
@@ -141,17 +153,21 @@ mod tests {
     fn creates_rows() {
         let word = "Hello";
 
-        let ( mut buffer, widget ) = setup_test_buffer(word, 5, 2);
+        let ( mut buffer, widget ) = setup_test_buffer(word, 10, 2);
 
         rows(
             make_cell(widget.clone()),
-            make_cell(widget),
+            columns(
+                make_cell(widget.clone()),
+                make_cell(widget.clone()),
+                0.5,
+            ),
             0.5,
         )(buffer.area, &mut buffer);
 
         let expected_buffer = Buffer::with_lines(vec![
-            "Hello",
-            "Hello",
+            "Hello     ",
+            "HelloHello",
         ]);
 
         assert_eq!(buffer, expected_buffer);
@@ -161,16 +177,25 @@ mod tests {
     fn creates_columns() {
         let word = "Hello";
 
-        let ( mut buffer, widget ) = setup_test_buffer(word, 10, 1);
+        let ( mut buffer, widget ) = setup_test_buffer(word, 10, 2);
 
         columns(
             make_cell(widget.clone()),
-            make_cell(widget),
+            rows(
+                make_cell(widget.clone()),
+                columns(
+                    make_cell(widget.clone()),
+                    make_cell(widget.clone()),
+                    0.5,
+                ),
+                0.3,
+            ),
             0.5,
         )(buffer.area, &mut buffer);
 
         let expected_buffer = Buffer::with_lines(vec![
             "HelloHello",
+            "     HelHe",
         ]);
 
         assert_eq!(buffer, expected_buffer);
