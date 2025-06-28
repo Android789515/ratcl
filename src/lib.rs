@@ -34,11 +34,11 @@ pub fn make_cell(content: impl Widget + Clone) -> impl LayoutCell {
     }
 }
 
-/// Creates a pair of rows with a given scale factor for the first row.
+/// Creates a pair of rows with a given constraint for the first row.
 ///
 /// # Example
 /// ```
-/// use ratatui::{buffer::Buffer, layout::Rect, widgets::{Block, Paragraph, Widget}};
+/// use ratatui::{buffer::Buffer, layout::{Constraint, Rect}, widgets::{Block, Paragraph, Widget}};
 /// use ratcl::{rows, columns, make_cell};
 /// 
 /// struct SomeStruct;
@@ -54,20 +54,18 @@ pub fn make_cell(content: impl Widget + Clone) -> impl LayoutCell {
 ///             columns(
 ///                 make_cell(some_paragraph.clone()),
 ///                 make_cell(some_paragraph),
-///                 0.5,
+///                 Constraint::Length(8),
 ///             ),
-///             0.5,
+///             Constraint::Length(3),
 ///         )(area, buffer);
 ///     }
 /// }
 /// ```
-pub fn rows(top_cell: impl LayoutCell, bottom_cell: impl LayoutCell, scale_factor: f64) -> impl LayoutCell {
+pub fn rows(top_cell: impl LayoutCell, bottom_cell: impl LayoutCell, constraint: Constraint) -> impl LayoutCell {
     move |rect, buffer| {
-        let scale_percent = (scale_factor * 100.0) as u16;
-
         let rects = Layout::vertical([
-            Constraint::Percentage(scale_percent),
-            Constraint::Percentage(100 - scale_percent),
+            constraint,
+            Constraint::Fill(1),
         ]).split(rect);
 
         top_cell(rects[0], buffer);
@@ -79,7 +77,7 @@ pub fn rows(top_cell: impl LayoutCell, bottom_cell: impl LayoutCell, scale_facto
 ///
 /// # Example
 /// ```
-/// use ratatui::{buffer::Buffer, layout::Rect, widgets::{Block, Paragraph, Widget}};
+/// use ratatui::{buffer::Buffer, layout::{Constraint, Rect}, widgets::{Block, Paragraph, Widget}};
 /// use ratcl::{columns, rows, make_cell};
 /// 
 /// struct SomeStruct;
@@ -97,22 +95,20 @@ pub fn rows(top_cell: impl LayoutCell, bottom_cell: impl LayoutCell, scale_facto
 ///                 columns(
 ///                     make_cell(some_paragraph.clone()),
 ///                     make_cell(some_paragraph),
-///                     0.5,
+///                     Constraint::Ratio(1, 2),
 ///                 ),
-///                 0.3,
+///                 Constraint::Percentage(30),
 ///             ),
-///             0.5,
+///             Constraint::Length(5),
 ///         )(area, buffer);
 ///     }
 /// }
 /// ```
-pub fn columns(left_cell: impl LayoutCell, right_cell: impl LayoutCell, scale_factor: f64) -> impl LayoutCell {
+pub fn columns(left_cell: impl LayoutCell, right_cell: impl LayoutCell, constraint: Constraint) -> impl LayoutCell {
     move |rect, buffer| {
-        let scale_percent = (scale_factor * 100.0) as u16;
-
         let rects = Layout::horizontal([
-            Constraint::Percentage(scale_percent),
-            Constraint::Percentage(100 - scale_percent),
+            constraint,
+            Constraint::Fill(1),
         ]).split(rect);
 
         left_cell(rects[0], buffer);
@@ -153,21 +149,25 @@ mod tests {
     fn creates_rows() {
         let word = "Hello";
 
-        let ( mut buffer, widget ) = setup_test_buffer(word, 10, 2);
+        let ( mut buffer, widget ) = setup_test_buffer(word, 10, 6);
 
         rows(
             make_cell(widget.clone()),
             columns(
                 make_cell(widget.clone()),
                 make_cell(widget.clone()),
-                0.5,
+                Constraint::Percentage(50),
             ),
-            0.5,
+            Constraint::Length(4),
         )(buffer.area, &mut buffer);
 
         let expected_buffer = Buffer::with_lines(vec![
             "Hello     ",
+            "          ",
+            "          ",
+            "          ",
             "HelloHello",
+            "          ",
         ]);
 
         assert_eq!(buffer, expected_buffer);
@@ -177,7 +177,7 @@ mod tests {
     fn creates_columns() {
         let word = "Hello";
 
-        let ( mut buffer, widget ) = setup_test_buffer(word, 10, 2);
+        let ( mut buffer, widget ) = setup_test_buffer(word, 10, 8);
 
         columns(
             make_cell(widget.clone()),
@@ -186,16 +186,22 @@ mod tests {
                 columns(
                     make_cell(widget.clone()),
                     make_cell(widget.clone()),
-                    0.5,
+                    Constraint::Length(8),
                 ),
-                0.3,
+                Constraint::Length(5),
             ),
-            0.5,
+            Constraint::Percentage(40),
         )(buffer.area, &mut buffer);
 
         let expected_buffer = Buffer::with_lines(vec![
-            "HelloHello",
-            "     HelHe",
+            "HellHello ",
+            "          ",
+            "          ",
+            "          ",
+            "          ",
+            "    Hello ",
+            "          ",
+            "          ",
         ]);
 
         assert_eq!(buffer, expected_buffer);
