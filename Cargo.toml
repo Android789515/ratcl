@@ -1,6 +1,6 @@
 [package]
 name = "ratcl"
-version = "0.2.0"
+version = "1.0.0"
 edition = "2024"
 description = "Create complex ratatui layouts with a simple API."
 license = "Unlicense"
