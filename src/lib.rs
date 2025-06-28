@@ -154,23 +154,16 @@ pub fn columns(left_cell: impl LayoutCell, right_cell: impl LayoutCell, constrai
 
 #[cfg(test)]
 mod tests {
-    use ratatui::widgets::Paragraph;
+    use ratatui::{symbols::border, widgets::{Block, Paragraph}};
 
     use super::*;
-
-    fn setup_test_buffer(word: &str, buffer_len: u16, buffer_height: u16) -> ( Buffer, Paragraph ) {
-        let buffer = Buffer::empty(Rect::new(0, 0, buffer_len, buffer_height));
-
-        let paragraph = Paragraph::new(word);
-
-        ( buffer, paragraph )
-    }
 
     #[test]
     fn renders_cell() {
         let word = "Hello";
 
-        let ( mut buffer, widget ) = setup_test_buffer(word, word.len() as u16, 1);
+        let mut buffer = Buffer::empty(Rect::new(0, 0, word.len() as u16, 1));
+        let widget = Paragraph::new(word);
 
         make_cell(widget)(buffer.area, &mut buffer);
 
@@ -185,7 +178,8 @@ mod tests {
     fn creates_rows() {
         let word = "Hello";
 
-        let ( mut buffer, widget ) = setup_test_buffer(word, 10, 6);
+        let mut buffer = Buffer::empty(Rect::new(0, 0, 10, 6));
+        let widget = Paragraph::new(word);
 
         rows(
             make_cell(widget.clone()),
@@ -211,9 +205,9 @@ mod tests {
 
     #[test]
     fn creates_columns() {
-        let word = "Hello";
-
-        let ( mut buffer, widget ) = setup_test_buffer(word, 10, 8);
+        let mut buffer = Buffer::empty(Rect::new(0, 0, 20, 20));
+        let widget = Block::bordered()
+            .border_set(border::ROUNDED);
 
         columns(
             make_cell(widget.clone()),
@@ -230,14 +224,26 @@ mod tests {
         )(buffer.area, &mut buffer);
 
         let expected_buffer = Buffer::with_lines(vec![
-            "HellHello ",
-            "          ",
-            "          ",
-            "          ",
-            "          ",
-            "    Hello ",
-            "          ",
-            "          ",
+            "╭──────╮╭──────────╮",
+            "│      ││          │",
+            "│      ││          │",
+            "│      ││          │",
+            "│      │╰──────────╯",
+            "│      │╭──────╮╭──╮",
+            "│      ││      ││  │",
+            "│      ││      ││  │",
+            "│      ││      ││  │",
+            "│      ││      ││  │",
+            "│      ││      ││  │",
+            "│      ││      ││  │",
+            "│      ││      ││  │",
+            "│      ││      ││  │",
+            "│      ││      ││  │",
+            "│      ││      ││  │",
+            "│      ││      ││  │",
+            "│      ││      ││  │",
+            "│      ││      ││  │",
+            "╰──────╯╰──────╯╰──╯",
         ]);
 
         assert_eq!(buffer, expected_buffer);
