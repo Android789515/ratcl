@@ -34,6 +34,42 @@ pub fn make_cell(content: impl Widget + Clone) -> impl LayoutCell {
     }
 }
 
+/// An empty cell.
+///
+/// Useful for laying out one cell per a constraint.
+///
+/// # Example
+/// ```
+/// use ratatui::{buffer::Buffer, layout::{Constraint, Rect}, widgets::{Block, Paragraph, Widget}};
+/// use ratcl::{make_cell, columns, rows, EmptyCell};
+/// 
+/// struct SomeStruct;
+///
+/// impl Widget for SomeStruct {
+///     fn render(self, area: Rect, buffer: &mut Buffer) {
+///         let some_block = Block::default();
+///         let some_paragraph = Paragraph::new("Test")
+///             .block(some_block);
+/// 
+///         columns(
+///             make_cell(some_paragraph.clone()),
+///             rows(
+///                 make_cell(some_paragraph.clone()),
+///                 make_cell(EmptyCell),
+///                 Constraint::Percentage(50),
+///             ),
+///             Constraint::Length(4),
+///         )(area, buffer);
+///     }
+/// }
+/// ```
+#[derive(Clone)]
+pub struct EmptyCell;
+
+impl Widget for EmptyCell {
+    fn render(self, _: Rect, _: &mut Buffer) {}
+}
+
 /// Creates a pair of rows with a given constraint for the first row.
 ///
 /// # Example
