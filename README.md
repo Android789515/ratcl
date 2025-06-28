@@ -7,7 +7,7 @@ Create complex [ratatui](https://ratatui.rs/) layouts with a simple API.
 ## Create Rows
 
 ```rs
-use ratatui::{buffer::Buffer, layout::Rect, widgets::{Paragraph, Widget, Block}};
+use ratatui::{buffer::Buffer, layout::{Constraint, Rect}, widgets::{Paragraph, Widget, Block}};
 use ratcl::{rows, make_cell};
 
 struct SomeStruct;
@@ -21,7 +21,7 @@ impl Widget for SomeStruct {
         rows(
             make_cell(paragraph.clone()),
             make_cell(paragraph),
-            0.5,
+            Constraint::Length(4),
         )(area, buffer);
     }
 }
@@ -33,7 +33,7 @@ impl Widget for SomeStruct {
 ## Create Columns
 
 ```rs
-use ratatui::{buffer::Buffer, layout::Rect, widgets::{Paragraph, Widget, Block}};
+use ratatui::{buffer::Buffer, layout::{Constraint, Rect}, widgets::{Paragraph, Widget, Block}};
 use ratcl::{columns, make_cell};
 
 struct SomeStruct;
@@ -47,7 +47,7 @@ impl Widget for SomeStruct {
         columns(
             make_cell(paragraph.clone()),
             make_cell(paragraph),
-            0.5,
+            Constraint::Percentage(40),
         )(area, buffer);
     }
 }
@@ -59,8 +59,8 @@ impl Widget for SomeStruct {
 ## Create Complex Layouts
 
 ```rs
-use ratatui::{buffer::Buffer, layout::Rect, widgets::{Paragraph, Widget, Block}};
-use ratcl::{rows, columns, make_cell};
+use ratatui::{buffer::Buffer, layout::{Constraint, Rect}, widgets::{Paragraph, Widget, Block}};
+use ratcl::{rows, columns, make_cell, EmptyCell};
 
 struct SomeStruct;
 
@@ -73,33 +73,32 @@ impl Widget for SomeStruct {
         rows(
             make_cell(paragraph.clone()),
             columns(
-              rows(
-                  make_cell(InnerStruct::inside(paragraph.clone())),
-                  columns(
-                      make_cell(paragraph.clone()),
-                      make_cell(paragraph.clone()),
-                      0.5,
-                  ),
-                  0.5,
-              ),
-              columns(
-                  rows(
-                      make_cell(paragraph.clone()),
-                      make_cell(paragraph.clone()),
-                      0.5,
-                  ),
-                  rows(
-                      make_cell(paragraph.clone()),
-                      make_cell(paragraph.clone()),
-                      0.4,
-                  ),
-                  0.5,
-              ),
-              0.5,
+                rows(
+                    make_cell(InnerStruct::inside(paragraph.clone())),
+                    columns(
+                        make_cell(paragraph.clone()),
+                        make_cell(paragraph.clone()),
+                        Constraint::Length(12),
+                    ),
+                    Constraint::Percentage(17),
+                ),
+                columns(
+                    rows(
+                        make_cell(paragraph.clone()),
+                        make_cell(InnerStruct::inside(paragraph.clone())),
+                        Constraint::Ratio(2, 7),
+                    ),
+                    rows(
+                        make_cell(InnerStruct::inside(EmptyCell)),
+                        make_cell(paragraph.clone()),
+                        Constraint::Length(9),
+                    ),
+                    Constraint::Fill(2),
+                ),
+                Constraint::Percentage(25),
             ),
-            0.3,
+            Constraint::Length(8),
         )(area, buffer);
-
     }
 }
 
@@ -126,8 +125,8 @@ impl <Content: Widget + Clone> Widget for InnerStruct<Content> {
 
         columns(
             make_cell(inner_paragraph.clone()),
-            make_cell(inner_paragraph),
-            0.7,
+            make_cell(EmptyCell),
+            Constraint::Ratio(2, 9),
         )(area.inner(Margin::new(4, 2)), buffer);
     }
 }
