@@ -4,44 +4,14 @@
 
 use ratatui::{buffer::Buffer, layout::{Constraint, Layout, Rect}, widgets::Widget};
 
-/// Defines the `LayoutCell` alias.
-pub trait LayoutCell: Fn(Rect, &mut Buffer) {}
-
-/// Implements the `LayoutCell` trait for its respective type.
-impl <Type: Fn(Rect, &mut Buffer)> LayoutCell for Type {}
-
-/// Creates a `LayoutCell` from a widget.
+/// An empty widget.
 ///
-/// # Example
-/// ```
-/// use ratatui::{buffer::Buffer, layout::Rect, widgets::{Block, Widget}};
-/// use ratcl::make_cell;
-/// 
-/// struct SomeStruct;
-///
-/// impl Widget for SomeStruct {
-///     fn render(self, area: Rect, buffer: &mut Buffer) {
-///         let some_other_widget = Block::default();
-/// 
-///         make_cell(some_other_widget)(area, buffer);
-///     }
-/// }
-/// ```
-pub fn make_cell(content: impl Widget + Clone) -> impl LayoutCell {
-    move |rect, buffer| {
-        content.clone()
-            .render(rect, buffer);
-    }
-}
-
-/// An empty cell.
-///
-/// Useful for laying out one cell per a constraint.
+/// Useful for laying out one widget per a constraint.
 ///
 /// # Example
 /// ```
 /// use ratatui::{buffer::Buffer, layout::{Constraint, Rect}, widgets::{Block, Paragraph, Widget}};
-/// use ratcl::{make_cell, columns, rows, EmptyCell};
+/// use ratcl::{Columns, Rows, EmptyWidget};
 /// 
 /// struct SomeStruct;
 ///
@@ -51,22 +21,22 @@ pub fn make_cell(content: impl Widget + Clone) -> impl LayoutCell {
 ///         let some_paragraph = Paragraph::new("Test")
 ///             .block(some_block);
 /// 
-///         columns(
-///             make_cell(some_paragraph.clone()),
-///             rows(
-///                 make_cell(some_paragraph.clone()),
-///                 make_cell(EmptyCell),
+///         Columns(
+///             some_paragraph.clone(),
+///             Rows(
+///                 some_paragraph,
+///                 EmptyWidget,
 ///                 Constraint::Percentage(50),
 ///             ),
 ///             Constraint::Length(4),
-///         )(area, buffer);
+///         ).render(area, buffer);
 ///     }
 /// }
 /// ```
 #[derive(Clone)]
-pub struct EmptyCell;
+pub struct EmptyWidget;
 
-impl Widget for EmptyCell {
+impl Widget for EmptyWidget {
     fn render(self, _: Rect, _: &mut Buffer) {}
 }
 
@@ -75,7 +45,7 @@ impl Widget for EmptyCell {
 /// # Example
 /// ```
 /// use ratatui::{buffer::Buffer, layout::{Constraint, Rect}, widgets::{Block, Paragraph, Widget}};
-/// use ratcl::{rows, columns, make_cell};
+/// use ratcl::{Rows, Columns};
 /// 
 /// struct SomeStruct;
 ///
@@ -85,27 +55,33 @@ impl Widget for EmptyCell {
 ///         let some_paragraph = Paragraph::new("Test")
 ///             .block(some_block);
 /// 
-///         rows(
-///             make_cell(some_paragraph.clone()),
-///             columns(
-///                 make_cell(some_paragraph.clone()),
-///                 make_cell(some_paragraph),
+///         Rows(
+///             some_paragraph.clone(),
+///             Columns(
+///                 some_paragraph.clone(),
+///                 some_paragraph,
 ///                 Constraint::Length(8),
 ///             ),
 ///             Constraint::Length(3),
-///         )(area, buffer);
+///         ).render(area, buffer);
 ///     }
 /// }
 /// ```
-pub fn rows(top_cell: impl LayoutCell, bottom_cell: impl LayoutCell, constraint: Constraint) -> impl LayoutCell {
-    move |rect, buffer| {
-        let rects = Layout::vertical([
-            constraint,
-            Constraint::Fill(1),
-        ]).split(rect);
+pub struct Rows<TopContent: Widget, BottomContent: Widget>(
+    pub TopContent,
+    pub BottomContent,
+    pub Constraint,
+);
 
-        top_cell(rects[0], buffer);
-        bottom_cell(rects[1], buffer);
+impl <TopContent: Widget, BottomContent: Widget> Widget for Rows<TopContent, BottomContent> {
+    fn render(self, area: Rect, buffer: &mut Buffer) {
+        let rects = Layout::vertical([
+            self.2,
+            Constraint::Fill(1),
+        ]).split(area);
+
+        self.0.render(rects[0], buffer);
+        self.1.render(rects[1], buffer);
     }
 }
 
@@ -114,7 +90,7 @@ pub fn rows(top_cell: impl LayoutCell, bottom_cell: impl LayoutCell, constraint:
 /// # Example
 /// ```
 /// use ratatui::{buffer::Buffer, layout::{Constraint, Rect}, widgets::{Block, Paragraph, Widget}};
-/// use ratcl::{columns, rows, make_cell};
+/// use ratcl::{Columns, Rows};
 /// 
 /// struct SomeStruct;
 ///
@@ -124,31 +100,37 @@ pub fn rows(top_cell: impl LayoutCell, bottom_cell: impl LayoutCell, constraint:
 ///         let some_paragraph = Paragraph::new("Test")
 ///             .block(some_block);
 /// 
-///         columns(
-///             make_cell(some_paragraph.clone()),
-///             rows(
-///                 make_cell(some_paragraph.clone()),
-///                 columns(
-///                     make_cell(some_paragraph.clone()),
-///                     make_cell(some_paragraph),
+///         Columns(
+///             some_paragraph.clone(),
+///             Rows(
+///                 some_paragraph.clone(),
+///                 Columns(
+///                     some_paragraph.clone(),
+///                     some_paragraph,
 ///                     Constraint::Ratio(1, 2),
 ///                 ),
 ///                 Constraint::Percentage(30),
 ///             ),
 ///             Constraint::Length(5),
-///         )(area, buffer);
+///         ).render(area, buffer);
 ///     }
 /// }
 /// ```
-pub fn columns(left_cell: impl LayoutCell, right_cell: impl LayoutCell, constraint: Constraint) -> impl LayoutCell {
-    move |rect, buffer| {
-        let rects = Layout::horizontal([
-            constraint,
-            Constraint::Fill(1),
-        ]).split(rect);
+pub struct Columns<LeftContent: Widget, RightContent: Widget>(
+    pub LeftContent,
+    pub RightContent,
+    pub Constraint,
+);
 
-        left_cell(rects[0], buffer);
-        right_cell(rects[1], buffer);
+impl <LeftContent: Widget, RightContent: Widget> Widget for Columns<LeftContent, RightContent> {
+    fn render(self, area: Rect, buffer: &mut Buffer) {
+        let rects = Layout::horizontal([
+            self.2,
+            Constraint::Fill(1),
+        ]).split(area);
+
+        self.0.render(rects[0], buffer);
+        self.1.render(rects[1], buffer);
     }
 }
 
@@ -159,37 +141,21 @@ mod tests {
     use super::*;
 
     #[test]
-    fn renders_cell() {
-        let word = "Hello";
-
-        let mut buffer = Buffer::empty(Rect::new(0, 0, word.len() as u16, 1));
-        let widget = Paragraph::new(word);
-
-        make_cell(widget)(buffer.area, &mut buffer);
-
-        let expected_buffer = Buffer::with_lines(vec![
-            word,
-        ]);
-
-        assert_eq!(buffer, expected_buffer);
-    }
-
-    #[test]
     fn creates_rows() {
         let word = "Hello";
 
         let mut buffer = Buffer::empty(Rect::new(0, 0, 10, 6));
         let widget = Paragraph::new(word);
 
-        rows(
-            make_cell(widget.clone()),
-            columns(
-                make_cell(widget.clone()),
-                make_cell(widget.clone()),
+        Rows(
+            widget.clone(),
+            Columns(
+                widget.clone(),
+                widget,
                 Constraint::Percentage(50),
             ),
             Constraint::Length(4),
-        )(buffer.area, &mut buffer);
+        ).render(buffer.area, &mut buffer);
 
         let expected_buffer = Buffer::with_lines(vec![
             "Hello     ",
@@ -209,19 +175,19 @@ mod tests {
         let widget = Block::bordered()
             .border_set(border::ROUNDED);
 
-        columns(
-            make_cell(widget.clone()),
-            rows(
-                make_cell(widget.clone()),
-                columns(
-                    make_cell(widget.clone()),
-                    make_cell(widget.clone()),
+        Columns(
+            widget.clone(),
+            Rows(
+                widget.clone(),
+                Columns(
+                    widget.clone(),
+                    widget,
                     Constraint::Length(8),
                 ),
                 Constraint::Length(5),
             ),
             Constraint::Percentage(40),
-        )(buffer.area, &mut buffer);
+        ).render(buffer.area, &mut buffer);
 
         let expected_buffer = Buffer::with_lines(vec![
             "╭──────╮╭──────────╮",
