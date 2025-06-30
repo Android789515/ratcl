@@ -79,7 +79,7 @@ impl Widget for SomeStruct {
             paragraph.clone(),
             paragraph,
             Constraint::Percentage(40),
-        )(area, buffer);
+        ).render(area, buffer);
     }
 }
 ```
@@ -129,7 +129,7 @@ impl Widget for SomeStruct {
                 Constraint::Percentage(25),
             ),
             Constraint::Length(8),
-        )(area, buffer);
+        ).render(area, buffer);
     }
 }
 
@@ -159,7 +159,7 @@ impl <Content: Widget + Clone> Widget for InnerStruct<Content> {
             inner_paragraph.clone(),
             EmptyCell,
             Constraint::Ratio(2, 9),
-        )(area.inner(Margin::new(4, 2)), buffer);
+        ).render(area.inner(Margin::new(4, 2)), buffer);
     }
 }
 ```
