@@ -4,6 +4,37 @@ Create complex [ratatui](https://ratatui.rs/) layouts with a simple API.
 
 ![showcase](./example-pictures/showcase.png)
 
+## Migrating From Version 1 -> 2
+```rs
+// Version 1
+use ratatui::widgets::Paragraph;
+use ratcl::{make_cell, rows, columns, EmptyCell};
+
+columns(
+    rows(
+        make_cell(Paragraph::new("One")),
+        make_cell(EmptyCell),
+        Constraint::Percentage(52),
+    ),
+    make_cell(Paragraph::new("Two")),
+    Constraint::Length(12),
+)(area, buffer);
+
+// Version 2
+use ratatui::widgets::Paragraph;
+use ratcl::{Rows, Columns, EmptyWidget};
+
+Columns(
+    Rows(
+        Paragraph::new("One"),
+        EmptyWidget,
+        Constraint::Percentage(52),
+    ),
+    Paragraph::new("Two"),
+    Constraint::Length(12),
+).render(area, buffer);
+```
+
 ## Create Rows
 
 ```rs
