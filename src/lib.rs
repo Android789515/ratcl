@@ -1,6 +1,6 @@
 //! # ratcl
 //!
-//! `ratcl` allows you to create complex ratatui layouts with a simple API.
+//! `ratcl` allows you to create complex `ratatui` layouts with a simple API.
 
 use ratatui::{buffer::Buffer, layout::{Constraint, Layout, Rect}, widgets::Widget};
 
